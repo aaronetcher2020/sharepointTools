@@ -1,0 +1,25 @@
+﻿<Properties StartupConfiguration="{C3A5CE68-7381-4D88-8312-8F969E026B2F}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="mover/Program.cs">
+    <Files>
+      <File FileName="mover/Program.cs" Line="61" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="mover" expanded="True">
+            <Node name="mover" selected="True" />
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="/Users/aaron/Projects/sharepointItems/mover/Program.cs" relfile="mover/Program.cs" line="76" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.ItemProperties.mover PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

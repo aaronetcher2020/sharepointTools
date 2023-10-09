@@ -1,12 +1,9 @@
 ﻿using System;
-using System.IO;
-using System.Threading.Tasks;
 using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using Microsoft.Graph.Models.Security;
-using Microsoft.Identity.Client;
-using Newtonsoft.Json;
+using PnP.Core.Model.SharePoint;
+
 
 namespace GraphODataDemo
 {
@@ -18,6 +15,7 @@ namespace GraphODataDemo
         public static string targetFolder { get; set; }
         public static DateTime filterDate { get; set; }
         public static string currentFilePath { get; set; }
+        public static string specificFolder { get; set; }
 
         static async Task Main(string[] args)
         {
@@ -35,6 +33,14 @@ namespace GraphODataDemo
             {
                 filterDate = DateTime.MinValue;
             }
+            if(args.Length> 4)
+            {
+                specificFolder = args[4];
+            }
+            else
+            {
+                specificFolder = string.Empty;
+            }
 
 
             graphClient = SetupClient();
@@ -44,8 +50,8 @@ namespace GraphODataDemo
             { }
             else
             {
-                System.IO.Directory.CreateDirectory(currentFilePath);
-                
+                    System.IO.Directory.CreateDirectory(currentFilePath);
+          
             }
             siteUrl = siteUrl + siteName;
 
@@ -81,40 +87,60 @@ namespace GraphODataDemo
 
             return new GraphServiceClient(clientSecretCredential, scopes);
         }
+        
         public static void GetFolderData(string driveId, string itemsId)
         {
             var items = graphClient.Drives[driveId].Items[itemsId].Children.GetAsync().Result;
+           // var targetedPath = 
             foreach (var item in items.Value)
             {
                 if (item.CreatedDateTime > filterDate)
                 {
-                    string path = currentFilePath + "/" + item.WebUrl.Replace(siteUrl + "Shared%20Documents/", "").ToString();
+                    Console.WriteLine(siteUrl);
+                    string pt = System.Web.HttpUtility.UrlDecode(item.WebUrl);
+
+                    string ck = item.WebUrl;
+                    string ck2 = ck.Replace(siteUrl, "");
+                    string replaced = ck2.Replace("/Shared%20Documents", "");
+                    string path = currentFilePath + replaced;
+                    path = System.Web.HttpUtility.UrlDecode(path);
                     if (item.Folder != null)
                     {
-
-                        if (System.IO.Directory.Exists(path))
-                        { }
-                        else
+                        if (specificFolder.Equals(string.Empty)|| item.WebUrl.Contains(specificFolder))
                         {
-                            System.IO.Directory.CreateDirectory(path);
-                            Console.WriteLine("Created the following Folder Path:" + path);
+
+                            if (System.IO.Directory.Exists(path))
+                            { }
+                            else
+                            {
+                                System.IO.Directory.CreateDirectory(path);
+
+
+
+                                Console.WriteLine("Created the following Folder Path:" + path);
+                            }
                         }
+                        
                         GetFolderData(driveId, item.Id);
                     }
                     else
                     {
-
-
-                        if (System.IO.Directory.Exists(path))
-                        { }
-                        else
+                        if (item.WebUrl.Contains(specificFolder) || specificFolder.Equals(string.Empty))
                         {
-                            System.IO.Directory.CreateDirectory(path);
+                            if (System.IO.File.Exists(path))
+                            {
+                                System.IO.File.Delete(path);
+                            }
+                            else
+                            {
+
+                            }
+                            SaveFileStream(path, graphClient.Drives[driveId].Items[item.Id].Content.GetAsync().Result);
+                            TimeZoneInfo timezone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                            System.IO.File.SetCreationTime(path, TimeZoneInfo.ConvertTime(item.CreatedDateTime.Value.DateTime, timezone).AddHours(-7));
+                            System.IO.File.SetLastWriteTime(path, TimeZoneInfo.ConvertTime(item.LastModifiedDateTime.Value.DateTime, timezone).AddHours(-7));
+                            Console.WriteLine("Saved Files to the following Folder: " + path + " with filename " + item.Name);
                         }
-
-
-                        SaveFileStream(path + "/" + item.Name, graphClient.Drives[driveId].Items[item.Id].Content.GetAsync().Result);
-                        Console.WriteLine("Saved Files to the following Folder: " + path + " with filename " + item.Name);
 
                     }
                 }
@@ -123,14 +149,49 @@ namespace GraphODataDemo
                     Console.WriteLine("Item before start date");
                 }
             }
+            updateTimeStamps(driveId, itemsId);
+            
+
+        }
+        public static void updateTimeStamps (string driveId, string itemsId)
+        {
+            var items = graphClient.Drives[driveId].Items[itemsId].Children.GetAsync().Result;
+            foreach (var item in items.Value)
+            {
+                if (item.Folder != null)
+                {
+                    //
+                    string ck = item.WebUrl;
+                    string ck2 = ck.Replace(siteUrl, "");
+                    string replaced = ck2.Replace("/Shared%20Documents", "");
+                    string path = currentFilePath + replaced;
+                    path = System.Web.HttpUtility.UrlDecode(path);
+                    updateTimeStamps(driveId, item.Id);
+                    TimeZoneInfo timezone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                    try
+                    {
+
+                        System.IO.Directory.SetCreationTime(path, TimeZoneInfo.ConvertTime(item.CreatedDateTime.Value.DateTime, timezone).AddHours(-7));
+                        System.IO.Directory.SetLastWriteTime(path, TimeZoneInfo.ConvertTime(item.LastModifiedDateTime.Value.DateTime, timezone).AddHours(-7));
+                    }
+                    catch (Exception e) { }
+                }
+            }
 
         }
         public static void SaveFileStream(String path, Stream stream)
         {
             var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write);
+           
             stream.CopyTo(fileStream);
             fileStream.Dispose();
         }
+    }
+    public class item
+    {
+        public string path { get; set; }
+        public DateTime createTime { get; set; }
+        public DateTime modifiedTime { get; set; }
     }
 
 }

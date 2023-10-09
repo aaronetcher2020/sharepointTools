@@ -8,4 +8,4 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = mover
-build_property.ProjectDir = /Users/aaron/Projects/mover/mover/
+build_property.ProjectDir = /Users/aaron/Projects/sharepointItems/mover/
