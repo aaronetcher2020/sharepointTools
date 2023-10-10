@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
@@ -16,12 +17,16 @@ namespace GraphODataDemo
         public static DateTime filterDate { get; set; }
         public static string currentFilePath { get; set; }
         public static string specificFolder { get; set; }
+        public static int folderCount { get; set; }
+        public static int fileCount { get; set; }
 
         static async Task Main(string[] args)
         {
             //Sharepoint URL form run input
             //https://landerholmlaw.sharepoint.com/sites/
             siteUrl = args[0].ToString();
+            folderCount = 0;
+            fileCount = 0;
             //DevA/
             siteName = args[1].ToString();
             targetFolder = args[2].ToString();
@@ -35,7 +40,8 @@ namespace GraphODataDemo
             }
             if(args.Length> 4)
             {
-                specificFolder = args[4];
+                specificFolder = System.Web.HttpUtility.UrlDecode(args[4]);
+                //specificFolder = args[4];
             }
             else
             {
@@ -62,14 +68,12 @@ namespace GraphODataDemo
             });
 
             var id = filteredSite.Value.First().Id.Split(',')[1].ToString();
-
-            //	Id	"landerholmlaw.sharepoint.com,7df7751a-9d60-4711-86e5-674d1f236baf,642dd668-9da8-4b9c-b3eb-e5bdbcc0f534"	
             var site = await graphClient.Sites[id].GetAsync();
             var drives = await graphClient.Sites[site.Id].Drives.GetAsync(); ;
             var d2 = await graphClient.Drives[drives.Value[0].Id].Root.GetAsync();
-           // var items = await graphClient.Drives[drives.Value[0].Id.ToString()].Items[d2.Id].Children.GetAsync();
-            GetFolderData(drives.Value[0].Id.ToString(), d2.Id);
-
+            
+          var i = await GetFolderData(drives.Value[0].Id.ToString(), d2.Id);
+            updateTimeStamps(drives.Value[0].Id, d2.Id);
 
 
 
@@ -87,8 +91,8 @@ namespace GraphODataDemo
 
             return new GraphServiceClient(clientSecretCredential, scopes);
         }
-        
-        public static void GetFolderData(string driveId, string itemsId)
+
+        public static async Task<int> GetFolderData(string driveId, string itemsId )
         {
             var items = graphClient.Drives[driveId].Items[itemsId].Children.GetAsync().Result;
            // var targetedPath = 
@@ -96,7 +100,7 @@ namespace GraphODataDemo
             {
                 if (item.CreatedDateTime > filterDate)
                 {
-                    Console.WriteLine(siteUrl);
+                   // Console.WriteLine(siteUrl);
                     string pt = System.Web.HttpUtility.UrlDecode(item.WebUrl);
 
                     string ck = item.WebUrl;
@@ -116,12 +120,12 @@ namespace GraphODataDemo
                                 System.IO.Directory.CreateDirectory(path);
 
 
-
-                                Console.WriteLine("Created the following Folder Path:" + path);
+                                //folderCount++;
+                                Console.WriteLine("Created the following Folder " + folderCount.ToString() + " Path:" + path + " folder new" + item.Name); 
                             }
                         }
-                        
-                        GetFolderData(driveId, item.Id);
+                        Console.WriteLine("Starting a new sub folder at path:" + path);
+                        var i2 = GetFolderData(driveId, item.Id);
                     }
                     else
                     {
@@ -135,11 +139,12 @@ namespace GraphODataDemo
                             {
 
                             }
+                            fileCount++;
                             SaveFileStream(path, graphClient.Drives[driveId].Items[item.Id].Content.GetAsync().Result);
                             TimeZoneInfo timezone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
                             System.IO.File.SetCreationTime(path, TimeZoneInfo.ConvertTime(item.CreatedDateTime.Value.DateTime, timezone).AddHours(-7));
                             System.IO.File.SetLastWriteTime(path, TimeZoneInfo.ConvertTime(item.LastModifiedDateTime.Value.DateTime, timezone).AddHours(-7));
-                            Console.WriteLine("Saved Files to the following Folder: " + path + " with filename " + item.Name);
+                            Console.WriteLine("Saved Files "+fileCount.ToString()+" to the following Folder: " + path + " with filename " + item.Name);
                         }
 
                     }
@@ -149,7 +154,8 @@ namespace GraphODataDemo
                     Console.WriteLine("Item before start date");
                 }
             }
-            updateTimeStamps(driveId, itemsId);
+            return 0;
+            
             
 
         }
@@ -173,8 +179,11 @@ namespace GraphODataDemo
 
                         System.IO.Directory.SetCreationTime(path, TimeZoneInfo.ConvertTime(item.CreatedDateTime.Value.DateTime, timezone).AddHours(-7));
                         System.IO.Directory.SetLastWriteTime(path, TimeZoneInfo.ConvertTime(item.LastModifiedDateTime.Value.DateTime, timezone).AddHours(-7));
+                        Console.WriteLine("Updated Timestamp(s) on folder:" + item.Name);
                     }
-                    catch (Exception e) { }
+                    catch (Exception e) {
+                        var et = e;
+                    }
                 }
             }
 
