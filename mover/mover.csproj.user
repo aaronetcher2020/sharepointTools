@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
     <StartAction>Project</StartAction>
-    <StartArguments>https://landerholmlaw.sharepoint.com/sites/ AllFirm /Users/aaron/Projects/sharepointItems 10/01/2001 %2FShared%20Documents%2FPacific%20Cascade%20-%20Eugene%20</StartArguments>
+    <StartArguments>https://landerholmlaw.sharepoint.com/sites/ AllFirm /Users/aaron/Projects/sharepointItems 10/01/2001 %2FPacific%20Cascade%20-%20Eugene</StartArguments>
     <ExternalConsole>true</ExternalConsole>
   </PropertyGroup>
 </Project>

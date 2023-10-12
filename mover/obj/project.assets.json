@@ -4688,8 +4688,7 @@
       ],
       "sources": {
         "https://api.nuget.org/v3/index.json": {},
-        "https://nuget.devexpress.com/4v2o4miHm6KQhkWlIJH5ElKiSHkXPzgqNodMvhbm3uJDwaRssT/api": {},
-        "https://pkgs.dev.azure.com/CureCoach/233837bf-c5df-4dec-aca0-796f739743c0/_packaging/CureLink.Services.API/nuget/v3/index.json": {}
+        "https://nuget.devexpress.com/4v2o4miHm6KQhkWlIJH5ElKiSHkXPzgqNodMvhbm3uJDwaRssT/api": {}
       },
       "frameworks": {
         "net7.0": {
