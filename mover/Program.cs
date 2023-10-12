@@ -314,6 +314,8 @@ namespace GraphODataDemo
             catch(Exception e)
             {
                 Console.WriteLine("Failing process requests");
+                //DO NOT REMOVE THREAD SLEEP Sometimes Sharepoint will reject after so many calls this lets it pause and resume.
+
                 Thread.Sleep(30000);
                 SaveFileStream(path, id, itemId);
             }
